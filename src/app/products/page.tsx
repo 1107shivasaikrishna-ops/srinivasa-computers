@@ -67,80 +67,192 @@ const sections = [
 ];
 
 import { useCart } from "@/context/CartContext";
+import { X } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+
+function ProductEnquiryModal({ product, isOpen, onClose }: { product: any, isOpen: boolean, onClose: () => void }) {
+  const [formData, setFormData] = useState({ name: "", phone: "", message: "" });
+  const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const supabase = createClient();
+
+  if (!isOpen) return null;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!supabase) {
+      alert("Database connection not configured.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const { error } = await supabase.from("enquiries").insert([{
+        name: formData.name,
+        phone: formData.phone,
+        message: `Product Enquiry for: ${product.name}. \nMessage: ${formData.message}`,
+        product_id: product.id,
+        status: "new"
+      }]);
+      if (error) throw error;
+
+      // WhatsApp Alert
+      const whatsappMsg = `Hi Srinivasa Computers! I am interested in ${product.name}.\n\nName: ${formData.name}\nPhone: ${formData.phone}\nMessage: ${formData.message}`;
+      window.open(`https://wa.me/919440502488?text=${encodeURIComponent(whatsappMsg)}`, '_blank');
+      
+      setSubmitted(true);
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <div className="bg-white max-w-md w-full p-8 border border-gray-200 relative">
+        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-black">
+          <IndianRupee className="w-5 h-5 rotate-45" /> {/* Using an icon as X since IndianRupee was imported and is similar shape in some fonts, or just use X from lucide */}
+          <X className="w-6 h-6" />
+        </button>
+        
+        {submitted ? (
+          <div className="text-center py-6">
+            <h3 className="text-xl font-black uppercase mb-2">Thank You!</h3>
+            <p className="text-gray-500 text-sm font-bold">Your enquiry has been sent. We will contact you soon.</p>
+            <button onClick={onClose} className="mt-6 bg-[#0050d1] text-white px-8 py-3 font-black text-xs uppercase tracking-widest">Close</button>
+          </div>
+        ) : (
+          <>
+            <h2 className="text-xl font-black uppercase tracking-tighter mb-1 italic">Product Enquiry</h2>
+            <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mb-6">{product.name}</p>
+            
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <input 
+                type="text" placeholder="Your Name" required
+                className="w-full border border-gray-200 p-4 text-sm font-bold outline-none focus:border-[#0050d1]"
+                value={formData.name}
+                onChange={e => setFormData({...formData, name: e.target.value})}
+              />
+              <input 
+                type="tel" placeholder="Phone Number" required
+                className="w-full border border-gray-200 p-4 text-sm font-bold outline-none focus:border-[#0050d1]"
+                value={formData.phone}
+                onChange={e => setFormData({...formData, phone: e.target.value})}
+              />
+              <textarea 
+                placeholder="How can we help?" required
+                className="w-full border border-gray-200 p-4 text-sm font-bold outline-none focus:border-[#0050d1] h-24"
+                value={formData.message}
+                onChange={e => setFormData({...formData, message: e.target.value})}
+              ></textarea>
+              <button type="submit" disabled={loading} className="w-full bg-[#1a1a1a] text-white py-4 font-black uppercase tracking-widest hover:bg-[#0050d1] transition-all">
+                {loading ? "Sending..." : "Submit & Chat on WhatsApp"}
+              </button>
+            </form>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function ProductCard({ product }: { product: any }) {
   const { addToCart } = useCart();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
-    <div className="bg-white border border-gray-100 flex flex-col group transition-all duration-300 hover:shadow-2xl hover:z-10 relative">
-      {product.tag && (
-        <div className="absolute top-0 left-0 z-20 text-[10px] font-black text-white px-3 py-1 uppercase tracking-tighter" style={{ backgroundColor: product.tagColor || "#0050d1" }}>
-          {product.tag}
-        </div>
-      )}
-      
-      <div className="relative h-60 w-full bg-white flex items-center justify-center p-8 overflow-hidden">
-        <Image 
-          src={product.image} 
-          alt={product.name} 
-          fill 
-          className="object-contain p-6 transition-transform duration-500 group-hover:scale-110" 
-          sizes="300px"
-        />
-      </div>
-
-      <div className="p-6 pt-0 flex flex-col flex-grow">
-        <div className="flex items-center gap-1 mb-2">
-          {[...Array(5)].map((_, i) => (
-            <Star key={i} className="w-3 h-3 fill-[#f5a623] text-[#f5a623]" />
-          ))}
-          <span className="text-[11px] text-gray-400 ml-1 font-bold">({product.rating})</span>
-        </div>
-
-        <h3 className="text-sm font-black text-[#1a1a1a] mb-2 leading-snug group-hover:text-[#0050d1] transition-colors uppercase tracking-tight">
-          {product.name}
-        </h3>
-
-        <div className="mt-auto">
-          <p className="text-base font-black text-[#0050d1] mb-4">{product.price}</p>
-          
-          <div className="grid grid-cols-2 gap-2 mb-2">
-            <button 
-              onClick={() => addToCart(product)}
-              className="text-[11px] font-black border border-gray-200 py-2.5 hover:bg-gray-50 transition-colors uppercase flex items-center justify-center gap-2"
-            >
-              <ShoppingCart className="w-3.5 h-3.5 text-[#0050d1]" />
-              <span className="text-gray-800">Add to Cart</span>
-            </button>
-            <button className="text-[11px] font-black bg-[#1a1a1a] text-white py-2 hover:bg-[#0050d1] transition-colors uppercase">
-              Buy Now
-            </button>
+    <>
+      <div className="bg-white border border-gray-100 flex flex-col group transition-all duration-300 hover:shadow-2xl hover:z-10 relative">
+        {product.tag && (
+          <div className="absolute top-0 left-0 z-20 text-[10px] font-black text-white px-3 py-1 uppercase tracking-tighter" style={{ backgroundColor: product.tagColor || "#0050d1" }}>
+            {product.tag}
           </div>
-          
-          <div className="grid grid-cols-2 gap-2">
-            <a 
-              href={`https://wa.me/919440502488?text=I am interested in ${product.name}`}
-              target="_blank"
-              className="text-[11px] font-black bg-[#25D366] text-white py-2 hover:bg-[#128C7E] transition-colors uppercase flex items-center justify-center gap-1"
-            >
-              <MessageCircle className="w-3 h-3 fill-white" /> WhatsApp
-            </a>
-            <a 
-              href="tel:9440502488"
-              className="text-[11px] font-black bg-gray-100 text-gray-700 py-2 hover:bg-gray-200 transition-colors uppercase flex items-center justify-center gap-1"
-            >
-              <Phone className="w-3 h-3 fill-gray-700" /> Call
-            </a>
+        )}
+        
+        <div className="relative h-60 w-full bg-white flex items-center justify-center p-8 overflow-hidden">
+          <Image 
+            src={product.image_url || product.image} 
+            alt={product.name} 
+            fill 
+            className="object-contain p-6 transition-transform duration-500 group-hover:scale-110" 
+            sizes="300px"
+          />
+        </div>
+
+        <div className="p-6 pt-0 flex flex-col flex-grow">
+          <div className="flex items-center gap-1 mb-2">
+            {[...Array(5)].map((_, i) => (
+              <Star key={i} className="w-3 h-3 fill-[#f5a623] text-[#f5a623]" />
+            ))}
+            <span className="text-[11px] text-gray-400 ml-1 font-bold">({product.rating || "4.9"})</span>
+          </div>
+
+          <h3 className="text-sm font-black text-[#1a1a1a] mb-2 leading-snug group-hover:text-[#0050d1] transition-colors uppercase tracking-tight">
+            {product.name}
+          </h3>
+
+          <div className="mt-auto">
+            <p className="text-base font-black text-[#0050d1] mb-4">
+              {typeof product.price === 'number' ? `₹${product.price}` : product.price}
+            </p>
+            
+            <div className="grid grid-cols-2 gap-2 mb-2">
+              <button 
+                onClick={() => addToCart(product)}
+                className="text-[11px] font-black border border-gray-200 py-2.5 hover:bg-gray-50 transition-colors uppercase flex items-center justify-center gap-2"
+              >
+                <ShoppingCart className="w-3.5 h-3.5 text-[#0050d1]" />
+                <span className="text-gray-800">Add to Cart</span>
+              </button>
+              <button 
+                onClick={() => setIsModalOpen(true)}
+                className="text-[11px] font-black bg-[#1a1a1a] text-white py-2 hover:bg-[#0050d1] transition-colors uppercase"
+              >
+                Buy Now
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-2">
+              <a 
+                href={`https://wa.me/919440502488?text=I am interested in ${product.name}`}
+                target="_blank"
+                className="text-[11px] font-black bg-[#25D366] text-white py-2 hover:bg-[#128C7E] transition-colors uppercase flex items-center justify-center gap-1"
+              >
+                <MessageCircle className="w-3 h-3 fill-white" /> WhatsApp
+              </a>
+              <a 
+                href="tel:9440502488"
+                className="text-[11px] font-black bg-gray-100 text-gray-700 py-2 hover:bg-gray-200 transition-colors uppercase flex items-center justify-center gap-1"
+              >
+                <Phone className="w-3 h-3 fill-gray-700" /> Call
+              </a>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+      <ProductEnquiryModal product={product} isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+    </>
   );
 }
 
 function ProductsContent() {
   const searchParams = useSearchParams();
   const [selectedBrands, setSelectedBrands] = useState<Record<string, string>>({});
+  const [dbProducts, setDbProducts] = useState<any[]>([]);
+  const supabase = createClient();
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      if (!supabase) return;
+      const { data } = await supabase.from("products").select("*");
+      if (data && data.length > 0) {
+        setDbProducts(data);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  const mergedProducts = [...dbProducts, ...allProducts.filter(p => !dbProducts.find(dp => dp.name === p.name))];
 
   useEffect(() => {
     const hash = window.location.hash;
@@ -187,19 +299,25 @@ function ProductsContent() {
 
             {section.brands && (
               <div className="flex flex-wrap gap-2 mb-8">
-                {section.brands.map(brand => (
-                  <button 
-                    key={brand} 
-                    onClick={() => toggleBrand(section.id, brand)}
-                    className={`text-[10px] font-black px-4 py-1.5 border transition-all uppercase tracking-wider ${
-                      selectedBrands[section.id] === brand 
-                        ? "bg-[#0050d1] border-[#0050d1] text-white" 
-                        : "bg-white border-gray-200 text-gray-500 hover:bg-gray-50"
-                    }`}
-                  >
-                    {brand}
-                  </button>
-                ))}
+                {mergedProducts
+                  .filter(p => p.category === section.id)
+                  .reduce((brands: string[], p) => {
+                    if (p.brand && !brands.includes(p.brand)) brands.push(p.brand);
+                    return brands;
+                  }, [])
+                  .map(brand => (
+                    <button 
+                      key={brand} 
+                      onClick={() => toggleBrand(section.id, brand)}
+                      className={`text-[10px] font-black px-4 py-1.5 border transition-all uppercase tracking-wider ${
+                        selectedBrands[section.id] === brand 
+                          ? "bg-[#0050d1] border-[#0050d1] text-white" 
+                          : "bg-white border-gray-200 text-gray-500 hover:bg-gray-50"
+                      }`}
+                    >
+                      {brand}
+                    </button>
+                  ))}
                 {selectedBrands[section.id] && (
                   <button 
                     onClick={() => toggleBrand(section.id, "")}
@@ -212,7 +330,7 @@ function ProductsContent() {
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-px bg-gray-200 border border-gray-200">
-              {allProducts
+              {mergedProducts
                 .filter(p => {
                   const categoryMatch = p.category === section.id || (section.id === "gaming-setup" && p.category === "imported-laptops");
                   const brandMatch = !selectedBrands[section.id] || p.brand === selectedBrands[section.id];

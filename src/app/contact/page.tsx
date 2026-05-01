@@ -1,13 +1,60 @@
-import Image from "next/image";
-import { MapPin, Phone, Mail, Clock, MessageCircle, Send } from "lucide-react";
-import Link from "next/link";
+"use client";
 
-export const metadata = {
-  title: "Contact Us | Srinivasa Computers",
-  description: "Get in touch with Srinivasa Computers for sales, support, and inquiries in Nizamabad.",
-};
+import { useState } from "react";
+import Image from "next/image";
+import { MapPin, Phone, Mail, Clock, MessageCircle, Send, CheckCircle2 } from "lucide-react";
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
 
 export default function ContactPage() {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    subject: "",
+    message: "",
+    phone: ""
+  });
+  const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState("");
+
+  const supabase = createClient();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      const { error: dbError } = await supabase.from("enquiries").insert([
+        {
+          name: formData.name,
+          email: formData.email,
+          subject: formData.subject,
+          message: formData.message,
+          phone: formData.phone,
+          status: "new"
+        }
+      ]);
+
+      if (dbError) throw dbError;
+
+      // WhatsApp Alert
+      const whatsappMessage = `New Enquiry from ${formData.name}!\n\nSubject: ${formData.subject}\nMessage: ${formData.message}\nEmail: ${formData.email}\nPhone: ${formData.phone}`;
+      const whatsappUrl = `https://wa.me/919440502488?text=${encodeURIComponent(whatsappMessage)}`;
+      
+      setSubmitted(true);
+      
+      // Optionally open WhatsApp in a new tab
+      // window.open(whatsappUrl, '_blank');
+
+    } catch (err: any) {
+      setError(err.message || "Failed to send message. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="bg-[#f9f9f9] min-h-screen">
       {/* Header */}
@@ -54,7 +101,11 @@ export default function ContactPage() {
               </p>
             </div>
 
-            <div className="bg-[#25D366] p-8 text-white group cursor-pointer hover:bg-[#128C7E] transition-colors">
+            <a 
+              href={`https://wa.me/919440502488`}
+              target="_blank"
+              className="block bg-[#25D366] p-8 text-white group cursor-pointer hover:bg-[#128C7E] transition-colors"
+            >
               <div className="flex items-center gap-4">
                 <MessageCircle className="w-8 h-8 fill-white" />
                 <div>
@@ -62,7 +113,7 @@ export default function ContactPage() {
                   <p className="text-sm font-bold opacity-90">Chat with an expert now</p>
                 </div>
               </div>
-            </div>
+            </a>
           </div>
 
           {/* Contact Form */}
@@ -70,32 +121,95 @@ export default function ContactPage() {
             <div className="bg-white p-10 border border-gray-200 shadow-sm">
               <h2 className="text-2xl font-black text-[#1a1a1a] mb-8 uppercase tracking-tighter italic">Send a Message</h2>
               
-              <form className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Full Name</label>
-                    <input type="text" className="w-full border border-gray-200 rounded-sm px-4 py-3 focus:border-[#0050d1] outline-none transition-all font-bold text-sm" placeholder="e.g. John Doe" />
+              {submitted ? (
+                <div className="text-center py-12">
+                  <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <CheckCircle2 className="w-10 h-10 text-green-600" />
                   </div>
-                  <div>
-                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Email Address</label>
-                    <input type="email" className="w-full border border-gray-200 rounded-sm px-4 py-3 focus:border-[#0050d1] outline-none transition-all font-bold text-sm" placeholder="e.g. john@company.com" />
+                  <h3 className="text-2xl font-black text-gray-900 uppercase mb-2">Message Sent!</h3>
+                  <p className="text-gray-500 font-medium mb-8">Thank you for reaching out. We will get back to you shortly.</p>
+                  <button 
+                    onClick={() => setSubmitted(false)}
+                    className="text-[#0050d1] font-black uppercase text-xs tracking-widest hover:underline"
+                  >
+                    Send Another Message
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Full Name</label>
+                      <input 
+                        type="text" 
+                        required
+                        className="w-full border border-gray-200 rounded-sm px-4 py-3 focus:border-[#0050d1] outline-none transition-all font-bold text-sm" 
+                        placeholder="e.g. John Doe" 
+                        value={formData.name}
+                        onChange={(e) => setFormData({...formData, name: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Email Address</label>
+                      <input 
+                        type="email" 
+                        required
+                        className="w-full border border-gray-200 rounded-sm px-4 py-3 focus:border-[#0050d1] outline-none transition-all font-bold text-sm" 
+                        placeholder="e.g. john@company.com" 
+                        value={formData.email}
+                        onChange={(e) => setFormData({...formData, email: e.target.value})}
+                      />
+                    </div>
                   </div>
-                </div>
 
-                <div>
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Subject</label>
-                  <input type="text" className="w-full border border-gray-200 rounded-sm px-4 py-3 focus:border-[#0050d1] outline-none transition-all font-bold text-sm" placeholder="What can we help you with?" />
-                </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Phone Number</label>
+                      <input 
+                        type="tel" 
+                        required
+                        className="w-full border border-gray-200 rounded-sm px-4 py-3 focus:border-[#0050d1] outline-none transition-all font-bold text-sm" 
+                        placeholder="e.g. +91 9876543210" 
+                        value={formData.phone}
+                        onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Subject</label>
+                      <input 
+                        type="text" 
+                        required
+                        className="w-full border border-gray-200 rounded-sm px-4 py-3 focus:border-[#0050d1] outline-none transition-all font-bold text-sm" 
+                        placeholder="What can we help you with?" 
+                        value={formData.subject}
+                        onChange={(e) => setFormData({...formData, subject: e.target.value})}
+                      />
+                    </div>
+                  </div>
 
-                <div>
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Your Message</label>
-                  <textarea rows={6} className="w-full border border-gray-200 rounded-sm px-4 py-3 focus:border-[#0050d1] outline-none transition-all font-bold text-sm resize-none" placeholder="Write your message here..."></textarea>
-                </div>
+                  <div>
+                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Your Message</label>
+                    <textarea 
+                      rows={6} 
+                      required
+                      className="w-full border border-gray-200 rounded-sm px-4 py-3 focus:border-[#0050d1] outline-none transition-all font-bold text-sm resize-none" 
+                      placeholder="Write your message here..."
+                      value={formData.message}
+                      onChange={(e) => setFormData({...formData, message: e.target.value})}
+                    ></textarea>
+                  </div>
 
-                <button type="button" className="bg-[#1a1a1a] hover:bg-[#0050d1] text-white font-black py-4 px-10 transition-all uppercase text-xs tracking-widest flex items-center gap-2">
-                  Send Inquiry <Send className="w-4 h-4" />
-                </button>
-              </form>
+                  {error && <p className="text-red-500 text-xs font-bold">{error}</p>}
+
+                  <button 
+                    type="submit" 
+                    disabled={loading}
+                    className="bg-[#1a1a1a] hover:bg-[#0050d1] disabled:opacity-50 text-white font-black py-4 px-10 transition-all uppercase text-xs tracking-widest flex items-center gap-2"
+                  >
+                    {loading ? "Sending..." : "Send Inquiry"} <Send className="w-4 h-4" />
+                  </button>
+                </form>
+              )}
             </div>
           </div>
 

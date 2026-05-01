@@ -83,8 +83,7 @@ export default function Navbar() {
                 { name: "Cash Counters", id: "cash-counters" },
                 { name: "Laptops", id: "laptops" },
                 { name: "Desktops", id: "desktops" },
-                { name: "Gaming Setup", id: "gaming-setup" },
-                { name: "Imported Laptops", id: "imported-laptops" },
+                { name: "Gaming & Imported", id: "gaming-setup" },
                 { name: "Printers & Toners", id: "printers" },
                 { name: "Laptop Accessories", id: "laptop-accessories" },
                 { name: "UPS Backups", id: "ups-backups" },
@@ -125,6 +124,9 @@ export default function Navbar() {
                 <User className="w-4 h-4" /> {user.name.toUpperCase()} <ChevronDown className="w-3 h-3" />
               </button>
               <div className="absolute top-full right-0 hidden group-hover:block bg-white border border-gray-100 shadow-xl w-48 z-50 py-2 mt-px">
+                <Link className="block px-6 py-2.5 text-[12px] text-gray-700 hover:bg-[#f0f7ff] hover:text-[#0050d1] font-bold uppercase tracking-widest" href="/profile">
+                  My Profile
+                </Link>
                 {user.isAdmin && (
                   <Link className="block px-6 py-2.5 text-[12px] text-gray-700 hover:bg-[#f0f7ff] hover:text-[#0050d1] font-bold uppercase tracking-widest" href="/admin">
                     Admin Panel

@@ -75,7 +75,22 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
-  const cartTotal = "Call for Pricing"; // Since prices are mostly "Call for Price"
+  const calculateTotal = () => {
+    let total = 0;
+    cart.forEach(item => {
+      // Remove symbols and commas, then parse
+      const numericPrice = parseFloat(item.price.replace(/[^\d.]/g, ''));
+      if (!isNaN(numericPrice)) {
+        total += numericPrice * item.quantity;
+      }
+    });
+    return total;
+  };
+
+  const totalAmount = calculateTotal();
+  const cartTotal = totalAmount > 0 
+    ? `₹${totalAmount.toLocaleString('en-IN')}` 
+    : "Call for Quote";
 
   return (
     <CartContext.Provider value={{ 

@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { Mail, Lock, User, ArrowRight, ShieldCheck } from "lucide-react";
+import { Mail, Lock, User, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -14,30 +14,54 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const supabase = createClient();
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!supabase) {
+      setError("Database connection not configured. Please add Supabase keys to .env.local");
+      return;
+    }
     setError("");
     setLoading(true);
 
-    // Mock auth flow for restoration consistency
-    const adminEmails = ["banswadashivasaikrishna@gmail.com", "srinivasasomputers@hotmail.com"];
-    const isAdmin = adminEmails.includes(email.toLowerCase());
-
-    const mockUser = {
-      email,
-      uid: "mock-uid-" + Math.random().toString(36).substr(2, 9),
-      name: name || email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1),
-      isAdmin: isAdmin
-    };
-    
-    localStorage.setItem("mockUser", JSON.stringify(mockUser));
-    localStorage.setItem("isLoggedIn", "true");
-    window.dispatchEvent(new Event("auth-change"));
-    
-    setTimeout(() => {
+    try {
+      if (isLogin) {
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              full_name: name,
+            },
+          },
+        });
+        if (error) throw error;
+        
+        if (data.user) {
+          // Add to customers table
+          const { error: profileError } = await supabase
+            .from("customers")
+            .insert([
+              { id: data.user.id, full_name: name }
+            ]);
+          if (profileError) console.error("Error creating profile:", profileError);
+        }
+      }
+      
       router.push("/");
-    }, 500);
+      router.refresh();
+    } catch (err: any) {
+      setError(err.message || "Authentication failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

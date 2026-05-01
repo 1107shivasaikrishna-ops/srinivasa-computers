@@ -4,9 +4,90 @@ import Link from "next/link";
 import { ShoppingBag, ArrowRight, Trash2, Plus, Minus, MessageCircle, ArrowLeft } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import Image from "next/image";
+import { createClient } from "@/lib/supabase/client";
+import { useState, useEffect } from "react";
 
 export default function CartPage() {
-  const { cart, removeFromCart, updateQuantity, cartCount } = useCart();
+  const { cart, removeFromCart, updateQuantity, cartCount, cartTotal, clearCart } = useCart();
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [isOrdered, setIsOrdered] = useState(false);
+  const supabase = createClient();
+
+  useEffect(() => {
+    const checkUser = async () => {
+      if (!supabase) return;
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    };
+    checkUser();
+  }, []);
+
+  const handlePlaceOrder = async () => {
+    if (!user) {
+      alert("Please login to place an order");
+      window.location.href = "/login";
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // 1. Create Order
+      const totalAmount = parseFloat(cartTotal.toString().replace(/[^\d.]/g, '')) || 0;
+      const { data: order, error: orderError } = await supabase
+        .from("orders")
+        .insert([{ 
+          customer_id: user.id, 
+          total_amount: totalAmount, 
+          status: "pending" 
+        }])
+        .select()
+        .single();
+
+      if (orderError) throw orderError;
+
+      // 2. Create Order Items
+      const orderItems = cart.map(item => ({
+        order_id: order.id,
+        product_id: item.id,
+        quantity: item.quantity,
+        price_at_purchase: parseFloat(item.price.toString().replace(/[^\d.]/g, '')) || 0
+      }));
+
+      const { error: itemsError } = await supabase.from("order_items").insert(orderItems);
+      if (itemsError) throw itemsError;
+
+      // 3. Clear Cart & Show Success
+      setIsOrdered(true);
+      clearCart();
+      
+      // WhatsApp Notification
+      const whatsappMsg = `New Order Placed! Order ID: ${order.id}\nItems: ${cart.map(i => `${i.name} (x${i.quantity})`).join(', ')}`;
+      window.open(`https://wa.me/919440502488?text=${encodeURIComponent(whatsappMsg)}`, '_blank');
+
+    } catch (err: any) {
+      alert(err.message || "Failed to place order");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (isOrdered) {
+    return (
+      <div className="bg-[#f9f9f9] min-h-screen py-20">
+        <div className="max-w-2xl mx-auto px-4 text-center">
+          <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-8">
+            <ShoppingBag className="w-12 h-12 text-green-600" />
+          </div>
+          <h1 className="text-4xl font-black text-[#1a1a1a] mb-4 uppercase tracking-tighter italic">Order Received!</h1>
+          <p className="text-gray-500 font-medium mb-10 leading-relaxed">Thank you for your order. We've sent a notification to our team, and we'll contact you shortly for fulfillment.</p>
+          <Link href="/profile" className="bg-[#0050d1] text-white px-10 py-4 font-black uppercase text-xs tracking-widest hover:bg-[#003d9e] transition-all inline-block">
+            View My Orders
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   if (cart.length === 0) {
     return (
@@ -54,12 +135,14 @@ export default function CartPage() {
             {cart.map((item) => (
               <div key={item.id} className="bg-white p-6 border border-gray-100 flex gap-6 items-center group hover:shadow-md transition-shadow">
                 <div className="w-24 h-24 bg-gray-50 flex-shrink-0 flex items-center justify-center p-4 relative overflow-hidden">
-                  <Image src={item.image} alt={item.name} fill className="object-contain p-2" />
+                  <Image src={item.image_url || item.image} alt={item.name} fill className="object-contain p-2" />
                 </div>
                 
                 <div className="flex-grow">
                   <h3 className="font-black text-[#1a1a1a] text-base uppercase tracking-tight mb-1 group-hover:text-[#0050d1] transition-colors">{item.name}</h3>
-                  <p className="text-[#0050d1] font-black text-sm mb-4">{item.price}</p>
+                  <p className="text-[#0050d1] font-black text-sm mb-4">
+                    {typeof item.price === 'number' ? `₹${item.price}` : item.price}
+                  </p>
                   
                   <div className="flex items-center gap-6">
                     <div className="flex items-center border border-gray-200 rounded-sm">
@@ -100,23 +183,24 @@ export default function CartPage() {
               
               <div className="flex justify-between mb-8">
                 <span className="text-gray-500 font-bold text-sm uppercase">Subtotal</span>
-                <span className="text-[#0050d1] font-black text-lg">Call for Quote</span>
+                <span className="text-[#0050d1] font-black text-lg">₹{cartTotal}</span>
               </div>
 
               <div className="space-y-3">
+                <button 
+                  onClick={handlePlaceOrder}
+                  disabled={loading}
+                  className="w-full bg-[#1a1a1a] text-white py-4 font-black rounded-sm hover:bg-[#0050d1] transition-all flex items-center justify-center gap-2 uppercase tracking-wider text-[13px] disabled:opacity-50"
+                >
+                  {loading ? "Processing..." : "Secure Checkout"}
+                </button>
                 <a 
                   href={`https://wa.me/919440502488?text=I want to buy: ${cart.map(i => `${i.name} (x${i.quantity})`).join(', ')}`}
                   target="_blank"
                   className="w-full bg-[#25D366] text-white py-4 font-black rounded-sm hover:bg-[#128C7E] transition-all flex items-center justify-center gap-2 uppercase tracking-wider text-[13px]"
                 >
-                  <MessageCircle className="w-5 h-5 fill-white" /> Checkout via WhatsApp
+                  <MessageCircle className="w-5 h-5 fill-white" /> WhatsApp Order
                 </a>
-                <Link 
-                  href="/contact"
-                  className="w-full border-2 border-[#1a1a1a] text-[#1a1a1a] py-4 font-black rounded-sm hover:bg-[#1a1a1a] hover:text-white transition-all flex items-center justify-center uppercase tracking-wider text-[13px]"
-                >
-                  Request Official Quote
-                </Link>
               </div>
               
               <p className="text-[10px] text-gray-400 mt-6 text-center leading-relaxed font-bold uppercase tracking-widest">
