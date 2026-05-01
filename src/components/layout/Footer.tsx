@@ -1,55 +1,107 @@
-import { MapPin, Phone, Mail } from "lucide-react";
+"use client";
+
+import Link from "next/link";
+import { MapPin, Phone, Mail, ArrowRight } from "lucide-react";
 
 export default function Footer() {
   return (
-    <footer className="bg-brand-dark text-white/80 pt-16 pb-8 border-t border-white/10">
-      <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
-        <div>
-          <h3 className="text-xl font-bold text-white mb-6">SRINIVASA <span className="text-brand-red">COMPUTERS</span></h3>
-          <p className="mb-6 leading-relaxed">
-            Your trusted partner for premium industrial cash-handling machines and top-quality laptop accessories in Telangana.
-          </p>
-          <div className="flex space-x-4">
-            {/* Social icons could go here */}
+    <footer className="bg-[#1a1a1a] text-gray-400 mt-0">
+      <div className="max-w-7xl mx-auto px-4 py-14 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10">
+        <div className="lg:col-span-2">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-8 h-8 bg-[#0050d1] flex items-center justify-center flex-shrink-0">
+              <span className="text-white font-black text-sm">SC</span>
+            </div>
+            <div>
+              <div className="text-base font-black text-white leading-none">
+                SRINIVASA <span className="text-[#0050d1]">COMPUTERS</span>
+              </div>
+              <div className="text-[10px] text-gray-500 font-medium leading-none mt-0.5">
+                Cash Handling & IT Solutions
+              </div>
+            </div>
           </div>
-        </div>
-
-        <div>
-          <h3 className="text-lg font-bold text-white mb-6">Contact Info</h3>
-          <ul className="space-y-4">
-            <li className="flex items-start">
-              <MapPin className="w-5 h-5 text-brand-red mr-3 mt-1 flex-shrink-0" />
+          <p className="text-sm text-gray-500 leading-relaxed mb-6 max-w-xs">
+            Telangana's most trusted dealer for industrial cash handling machines, printers, CCTV cameras, and office IT solutions.
+          </p>
+          <ul className="space-y-3 text-sm">
+            <li className="flex items-start gap-3">
+              <MapPin className="w-4 h-4 text-[#0050d1] mt-0.5 flex-shrink-0" />
               <span>Beside Kapila Hotel, Hyd-Road, Pragati Nagar, Nizamabad, Telangana</span>
             </li>
-            <li className="flex items-center">
-              <Phone className="w-5 h-5 text-brand-red mr-3 flex-shrink-0" />
+            <li className="flex items-center gap-3">
+              <Phone className="w-4 h-4 text-[#0050d1] flex-shrink-0" />
               <a href="tel:9440502488" className="hover:text-white transition-colors">9440502488</a>
             </li>
-            <li className="flex items-center">
-              <Mail className="w-5 h-5 text-brand-red mr-3 flex-shrink-0" />
-              <a href="mailto:info@srinivasacomputers.com" className="hover:text-white transition-colors">info@srinivasacomputers.com</a>
+            <li className="flex items-center gap-3">
+              <Mail className="w-4 h-4 text-[#0050d1] flex-shrink-0" />
+              <a href="mailto:srinivasasomputers@hotmail.com" className="hover:text-white transition-colors">srinivasasomputers@hotmail.com</a>
             </li>
           </ul>
         </div>
 
         <div>
-          <h3 className="text-lg font-bold text-white mb-6">Our Location</h3>
-          <div className="w-full h-48 bg-gray-800 rounded-lg overflow-hidden border border-white/10">
-            <iframe 
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3780.052864380816!2d78.10657987519502!3d18.66167818245842!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bcce7d3f23719b3%3A0x6d9f8e4e892c5a1!2sPragati%20Nagar%2C%20Nizamabad%2C%20Telangana!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin" 
-              width="100%" 
-              height="100%" 
-              style={{ border: 0 }} 
-              allowFullScreen={true} 
-              loading="lazy" 
-              referrerPolicy="no-referrer-when-downgrade"
-            ></iframe>
-          </div>
+          <h4 className="text-xs font-bold text-white uppercase tracking-widest mb-4">Products</h4>
+          <ul className="space-y-2.5">
+            {[
+              { name: "Cash Counters", path: "cash-counters" },
+              { name: "Laptops", path: "laptops" },
+              { name: "Desktops", path: "desktops" },
+              { name: "Gaming Setup", path: "gaming-setup" },
+              { name: "Printers & Toners", path: "printers" },
+              { name: "CCTV Cameras", path: "cctv-cameras" }
+            ].map((item) => (
+              <li key={item.name}>
+                <Link className="text-sm text-gray-500 hover:text-[#0050d1] transition-colors flex items-center gap-1 group" href={`/products#${item.path}`}>
+                  <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity -ml-1" />
+                  {item.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div>
+          <h4 className="text-xs font-bold text-white uppercase tracking-widest mb-4">Services</h4>
+          <ul className="space-y-2.5">
+            {[
+              "Annual Maintenance (AMC)", "Machine Repair", 
+              "On-site Installation", "Free Demo Booking"
+            ].map((item) => (
+              <li key={item}>
+                <Link className="text-sm text-gray-500 hover:text-[#0050d1] transition-colors flex items-center gap-1 group" href="/services">
+                  <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity -ml-1" />
+                  {item}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div>
+          <h4 className="text-xs font-bold text-white uppercase tracking-widest mb-4">Company</h4>
+          <ul className="space-y-2.5">
+            {[
+              { name: "About Us", href: "/about" },
+              { name: "Contact Us", href: "/contact" },
+              { name: "Our Location", href: "/contact" }
+            ].map((item) => (
+              <li key={item.name}>
+                <Link className="text-sm text-gray-500 hover:text-[#0050d1] transition-colors flex items-center gap-1 group" href={item.href}>
+                  <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity -ml-1" />
+                  {item.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
-      
-      <div className="container mx-auto px-4 pt-8 border-t border-white/10 text-center text-sm">
-        <p>&copy; {new Date().getFullYear()} Srinivasa Computers. All rights reserved.</p>
+
+      <div className="border-t border-white/10">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-600">
+          <span>© {new Date().getFullYear()} Srinivasa Computers. All rights reserved.</span>
+          <span>Made with ❤️ in Nizamabad, Telangana</span>
+        </div>
       </div>
     </footer>
   );

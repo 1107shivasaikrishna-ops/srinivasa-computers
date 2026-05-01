@@ -15,6 +15,8 @@ export const metadata: Metadata = {
   description: "Count Your Cash With Ease. Premium industrial cash-handling machines and laptop accessories shop in Pragati Nagar, Nizamabad.",
 };
 
+import { CartProvider } from "@/context/CartContext";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -26,12 +28,14 @@ export default function RootLayout({
       className={`${inter.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-sans" suppressHydrationWarning>
-        <Navbar />
-        <main className="flex-grow flex flex-col">
-          {children}
-        </main>
-        <Footer />
-        <Chatbot />
+        <CartProvider>
+          <Navbar />
+          <main className="flex-grow flex flex-col">
+            {children}
+          </main>
+          <Footer />
+          <Chatbot />
+        </CartProvider>
       </body>
     </html>
   );

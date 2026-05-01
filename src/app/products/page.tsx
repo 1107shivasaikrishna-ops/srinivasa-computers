@@ -1,189 +1,239 @@
+"use client";
+
 import Image from "next/image";
-import { MessageCircle, CheckCircle2, ShieldCheck, ArrowRight, Zap, Printer, HardDrive, Cpu, Camera } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { Phone, MessageCircle, Star, ShoppingCart, IndianRupee, Laptop, Monitor, Gamepad2, Cpu, Printer, MousePointer2, Battery, Camera } from "lucide-react";
+import Link from "next/link";
+import { Suspense, useEffect, useState } from "react";
 
-export const metadata = {
-  title: "Products | Srinivasa Computers",
-  description: "Browse our premium money counting machines, printers, CCTV cameras, and office automation products.",
-};
+const allProducts = [
+  // Cash Counting Machines
+  { id: 1, category: "cash-counters", brand: "EASE", name: "EASE 1000 Semi Value Counter", tag: "Best Seller", tagColor: "#cc0000", image: "/ease-1000.png", rating: 4.9, features: ["1000 notes/min", "UV/MG/IR Detection", "3 Year Warranty"], price: "Call for Price" },
+  { id: 2, category: "cash-counters", brand: "INX", name: "INX 4000 Mix Value Counter", tag: "New Arrival", tagColor: "#0050d1", image: "/inx-4000.png", rating: 4.9, features: ["Mix Note Counting", "Multi-Currency", "Color LCD Display"], price: "Call for Price" },
+  { id: 5, category: "cash-counters", brand: "BANKOMAT", name: "BANKOMAT CURRENCY COUNTER", image: "/ease-1000.png", rating: 5.0, features: ["Heavy Duty", "Advanced UV Detection", "Bank Grade"], price: "Call for Price" },
+  { id: 6, category: "cash-counters", brand: "MARC", name: "MARC NOTE COUNTING MACHINE", image: "/ease-1000.png", rating: 5.0, features: ["Fast Counting", "Counterfeit Alert", "Compact Design"], price: "Call for Price" },
+  { id: 7, category: "cash-counters", brand: "GODREJ", name: "GODREJ CASH COUNTER", image: "/ease-1000.png", rating: 5.0, features: ["Reliable Service", "Dual Display", "Godrej Warranty"], price: "Call for Price" },
 
-const productCategories = [
-  {
-    id: "printers",
-    title: "Printers",
-    icon: <Printer className="w-6 h-6 mr-3 text-cyan-400" />,
-    items: [
-      { id: 1, name: "Epson EcoTank L3250 Wi-Fi All-in-One", price: "₹14,500", image: "https://images.unsplash.com/photo-1612815154858-60aa4c59eaa6?auto=format&fit=crop&w=400&q=80" },
-      { id: 2, name: "HP LaserJet Pro M126nw", price: "₹18,200", image: "/hp_laserjet_m126nw.png" },
-      { id: 3, name: "Canon PIXMA G3000 All-in-One", price: "₹12,800", image: "/canon_pixma_g3000.png" },
-      { id: 4, name: "Brother HL-L2321D Single-Function", price: "₹9,500", image: "https://images.unsplash.com/photo-1612815154858-60aa4c59eaa6?auto=format&fit=crop&w=400&q=80" },
-    ]
-  },
-  {
-    id: "toners",
-    title: "Toners & Ink",
-    icon: <HardDrive className="w-6 h-6 mr-3 text-purple-400" />,
-    items: [
-      { id: 1, name: "HP 88A Original Black LaserJet Toner", price: "₹3,500", image: "/hp_88a_toner.png" },
-      { id: 2, name: "Epson 003 Ink Bottle (Black)", price: "₹450", image: "/epson_003_ink.png" },
-      { id: 3, name: "Canon NPG-59 Toner", price: "₹2,100", image: "/canon_npg59_toner.png" },
-      { id: 4, name: "Brother TN-2365 Toner Cartridge", price: "₹2,800", image: "/brother_tn2365_toner.png" },
-    ]
-  },
-  {
-    id: "smps",
-    title: "SMPS & Power Supplies",
-    icon: <Cpu className="w-6 h-6 mr-3 text-green-400" />,
-    items: [
-      { id: 1, name: "Zebronics 450W SMPS", price: "₹850", image: "https://images.unsplash.com/photo-1587202372634-32705e3bf49c?auto=format&fit=crop&w=400&q=80" },
-      { id: 2, name: "Corsair CV550 550 Watt 80 Plus", price: "₹3,800", image: "/corsair_cv550_smps.png" },
-      { id: 3, name: "Cooler Master MWE 450 Bronze", price: "₹2,900", image: "https://images.unsplash.com/photo-1587202372634-32705e3bf49c?auto=format&fit=crop&w=400&q=80" },
-      { id: 4, name: "Ant Esports VS500L Power Supply", price: "₹1,500", image: "/ant_esports_vs500l.png" },
-    ]
-  },
-  {
-    id: "cctv",
-    title: "CCTV Cameras",
-    icon: <Camera className="w-6 h-6 mr-3 text-red-400" />,
-    items: [
-      { id: 1, name: "CP Plus 2.4MP Dome Camera", price: "₹1,200", image: "/cpplus_dome_camera.png" },
-      { id: 2, name: "Hikvision 4 Channel DVR", price: "₹3,500", image: "/hikvision_4ch_dvr.png" },
-      { id: 3, name: "Dahua 2MP Bullet Camera", price: "₹1,350", image: "/dahua_bullet_camera.png" },
-      { id: 4, name: "CP Plus 8 Channel NVR", price: "₹5,200", image: "/cpplus_8ch_nvr.png" },
-    ]
-  }
+  // Laptops
+  { id: 24, category: "laptops", brand: "DELL", name: "Dell Inspiron 15 Laptop", image: "/cat_laptops.png", rating: 4.7, features: ["Latest Processors", "8GB/16GB RAM", "Full HD Display"], price: "Call for Price" },
+  { id: 25, category: "laptops", brand: "HP", name: "HP Pavilion 15 Laptop", image: "/cat_laptops.png", rating: 4.8, features: ["Sleek Modern Design", "Fast Charging", "Premium Audio"], price: "Call for Price" },
+  { id: 26, category: "laptops", brand: "LENOVO", name: "Lenovo IdeaPad Slim 3", image: "/cat_laptops.png", rating: 4.6, features: ["Thin & Light", "Great Battery Life", "Multiple Colors"], price: "Call for Price" },
+  { id: 27, category: "laptops", brand: "MSI", name: "MSI Modern 14 Laptop", image: "/cat_laptops.png", rating: 4.8, features: ["Ultra-Portable", "Backlit Keyboard", "Military-Grade"], price: "Call for Price" },
+  { id: 28, category: "laptops", brand: "ACER", name: "Acer Aspire 5 Laptop", image: "/cat_laptops.png", rating: 4.5, features: ["Full HD IPS Display", "Multiple USB Ports", "Great Value"], price: "Call for Price" },
+
+  // Desktops
+  { id: 8, category: "desktops", brand: "DELL", name: "DELL OPTIPLEX DESKTOP", image: "/cat_laptops.png", rating: 5.0, features: ["Intel Core i5", "8GB RAM / 256GB SSD", "Professional Grade"], price: "Call for Price" },
+  { id: 9, category: "desktops", brand: "HP", name: "HP ELITEDESK DESKTOP", image: "/cat_laptops.png", rating: 5.0, features: ["Sleek Design", "Powerful Performance", "Business Ready"], price: "Call for Price" },
+  { id: 10, category: "desktops", brand: "LENOVO", name: "LENOVO THINKCENTRE DESKTOP", image: "/cat_laptops.png", rating: 5.0, features: ["Space Saving", "Military Grade Tech", "Trusted Reliability"], price: "Call for Price" },
+
+  // Gaming & Imported
+  { id: 11, category: "gaming-setup", brand: "DELL GAMING", name: "Dell Latitude (Imported) i5/i7", image: "/cat_laptops.png", rating: 4.8, features: ["Business Class", "Reliable Performance", "Durable Build"], price: "Call for Price" },
+  { id: 12, category: "gaming-setup", brand: "HP", name: "HP EliteBook (Imported) i5/i7", image: "/cat_laptops.png", rating: 4.9, features: ["Premium Sleek Build", "Fast Performance", "Ideal for Professionals"], price: "Call for Price" },
+  { id: 13, category: "gaming-setup", brand: "ENTERPRISE", name: "Lenovo ThinkPad (Imported)", image: "/cat_laptops.png", rating: 4.9, features: ["Legendary Keyboard", "Rugged Durability", "High Security"], price: "Call for Price" },
+  { id: 14, category: "gaming-setup", brand: "MSI GAMING", name: "MSI Gaming GF63", image: "/cat_laptops.png", rating: 4.7, features: ["Dedicated Graphics", "High Refresh Rate", "Gaming Performance"], price: "Call for Price" },
+  { id: 15, category: "gaming-setup", brand: "DELL GAMING", name: "Dell G15 Gaming", image: "/cat_laptops.png", rating: 4.8, features: ["Powerful Specs", "RTX Graphics", "Advanced Cooling"], price: "Call for Price" },
+  { id: 101, category: "gaming-setup", brand: "ROG", name: "ASUS ROG STRIX G15", image: "/cat_laptops.png", rating: 4.9, features: ["AMD Ryzen 9", "RTX 3070", "300Hz Display"], price: "Call for Price" },
+  { id: 102, category: "gaming-setup", brand: "ALIENWARE", name: "Alienware m15 R7", image: "/cat_laptops.png", rating: 5.0, features: ["Intel i9", "RTX 3080 Ti", "Legendary Design"], price: "Call for Price" },
+
+  // CCTV
+  { id: 4, category: "cctv-cameras", brand: "CPPLUS", name: "CP Plus 2.4MP Dome Camera", image: "/cpplus_dome_camera.png", rating: 4.9, features: ["Night Vision IR", "HD 2.4MP", "Weatherproof"], price: "₹1,200" },
+
+  // Laptop Accessories
+  { id: 16, category: "laptop-accessories", brand: "FINGERS", name: "Fingers Wireless Mouse", image: "/cat_laptops.png", rating: 4.5, features: ["Ergonomic Design", "Long Battery Life", "Precise Tracking"], price: "₹450" },
+  { id: 17, category: "laptop-accessories", brand: "ZEBRONICS", name: "Gaming Keyboard RGB", image: "/cat_laptops.png", rating: 4.6, features: ["Multi-color Backlight", "Mechanical Feel", "Durable Build"], price: "₹1,200" },
+  
+  // UPS Backups
+  { id: 20, category: "ups-backups", brand: "CYBERPOWER", name: "CyberPower 600VA UPS", image: "/cat_ups.png", rating: 4.7, features: ["Reliable Battery Backup", "Surge Protection", "Home/Office use"], price: "Call for Price" },
+  { id: 21, category: "ups-backups", brand: "CYBERPOWER", name: "CyberPower 1000VA UPS", image: "/cat_ups.png", rating: 4.8, features: ["Extended Runtime", "LCD Status Display", "Professional Grade"], price: "Call for Price" },
+
+  // Printers & Toners
+  { id: 3, category: "printers", brand: "HP", name: "HP LaserJet Pro M126nw", image: "/hp_laserjet_m126nw.png", rating: 4.9, features: ["Wi-Fi Enabled", "Multi-Function", "Fast Print Speed"], price: "₹18,200" },
+  { id: 29, category: "printers", brand: "CANON", name: "Canon Pixma G3000", image: "/canon_pixma_g3000.png", rating: 4.8, features: ["Ink Tank system", "Wireless printing", "High yield"], price: "₹14,500" },
+  { id: 30, category: "printers", brand: "HP", name: "HP Original Toner 88A", image: "/hp_88a_toner.png", rating: 4.9, features: ["Genuine HP product", "1500 page yield", "Black"], price: "₹4,200" },
+  { id: 31, category: "printers", brand: "EPSON", name: "Epson 003 Ink Bottle (Black)", image: "/epson_003_ink.png", rating: 4.7, features: ["Genuine Epson Ink", "4500 page yield", "Spill-free bottle"], price: "₹650" },
+  { id: 32, category: "printers", brand: "BROTHER", name: "Brother TN-2365 Toner Cartridge", image: "/brother_tn2365_toner.png", rating: 4.8, features: ["High Yield 2600 pages", "Original Brother quality", "Sharp Black prints"], price: "₹3,800" },
+  { id: 33, category: "printers", brand: "CANON", name: "Canon NPG-59 Toner Black", image: "/canon_npg59_toner.png", rating: 4.9, features: ["For iR2002/2202 series", "Original Canon Toner", "Reliable Performance"], price: "₹2,500" }
 ];
 
-export default function ProductsPage() {
+const sections = [
+  { id: "cash-counters", title: "CASH COUNTING MACHINES", subtitle: "BRANDS: BANKOMAT, MARC, GODREJ, EASE, INX", brands: ["BANKOMAT", "MARC", "GODREJ", "EASE", "INX"], icon: IndianRupee },
+  { id: "laptops", title: "LAPTOPS", subtitle: "BRANDS: DELL, HP, LENOVO, MSI, ACER — NEW & GENUINE", brands: ["DELL", "HP", "LENOVO", "MSI", "ACER"], icon: Laptop },
+  { id: "desktops", title: "DESKTOPS", subtitle: "BUSINESS & PERSONAL GRADE DESKTOPS", brands: ["DELL", "HP", "LENOVO", "MSI", "ACER"], icon: Monitor },
+  { id: "gaming-setup", title: "GAMING SETUP & IMPORTED HARDWARE", subtitle: "PREMIUM GAMING LAPTOPS & REFURBISHED ENTERPRISE GEAR", brands: ["DELL GAMING", "MSI GAMING", "ROG", "ALIENWARE", "ENTERPRISE"], icon: Gamepad2 },
+  { id: "cctv-cameras", title: "CCTV CAMERAS & SECURITY", subtitle: "BRANDS: CPPLUS, TRUE VIEW, ACTIVEPIXEL, DAYTONIC — INSTALLATION INCLUDED", brands: ["CPPLUS", "TRUE VIEW", "ACTIVEPIXEL", "DAYTONIC", "HIKVISION", "DAHUA"], icon: Camera },
+  { id: "laptop-accessories", title: "LAPTOP ACCESSORIES", subtitle: "ESSENTIAL ADD-ONS & PERIPHERALS", brands: ["DELL", "HP", "ZEBRONICS", "FINGERS", "LOGITECH"], icon: MousePointer2 },
+  { id: "ups-backups", title: "UPS BACKUPS", subtitle: "POWER SOLUTIONS & PROTECTION", brands: ["CYBERPOWER", "APC", "LUMINOUS", "MICROTEK"], icon: Battery },
+  { id: "printers", title: "PRINTERS & TONERS", subtitle: "OFFICE SOLUTIONS & HIGH-QUALITY CONSUMABLES", brands: ["HP", "CANON", "EPSON", "BROTHER", "PANTUM"], icon: Printer },
+];
+
+import { useCart } from "@/context/CartContext";
+
+function ProductCard({ product }: { product: any }) {
+  const { addToCart } = useCart();
+
   return (
-    <div className="bg-[#050B14] min-h-screen pb-20 font-sans text-gray-200">
-      {/* Hero Section */}
-      <div className="relative bg-[#02050A] text-white py-24 overflow-hidden border-b border-gray-800">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-900/40 via-[#02050A] to-[#02050A] z-0" />
-        <div className="container mx-auto px-4 text-center relative z-10">
-          <h1 className="text-5xl md:text-6xl font-bold mb-6 tracking-tight">Our Premium Products</h1>
-          <p className="text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
-            Industry-leading technology for your business and personal computing needs. Experience reliability like never before.
-          </p>
+    <div className="bg-white border border-gray-100 flex flex-col group transition-all duration-300 hover:shadow-2xl hover:z-10 relative">
+      {product.tag && (
+        <div className="absolute top-0 left-0 z-20 text-[10px] font-black text-white px-3 py-1 uppercase tracking-tighter" style={{ backgroundColor: product.tagColor || "#0050d1" }}>
+          {product.tag}
+        </div>
+      )}
+      
+      <div className="relative h-60 w-full bg-white flex items-center justify-center p-8 overflow-hidden">
+        <Image 
+          src={product.image} 
+          alt={product.name} 
+          fill 
+          className="object-contain p-6 transition-transform duration-500 group-hover:scale-110" 
+          sizes="300px"
+        />
+      </div>
+
+      <div className="p-6 pt-0 flex flex-col flex-grow">
+        <div className="flex items-center gap-1 mb-2">
+          {[...Array(5)].map((_, i) => (
+            <Star key={i} className="w-3 h-3 fill-[#f5a623] text-[#f5a623]" />
+          ))}
+          <span className="text-[11px] text-gray-400 ml-1 font-bold">({product.rating})</span>
+        </div>
+
+        <h3 className="text-sm font-black text-[#1a1a1a] mb-2 leading-snug group-hover:text-[#0050d1] transition-colors uppercase tracking-tight">
+          {product.name}
+        </h3>
+
+        <div className="mt-auto">
+          <p className="text-base font-black text-[#0050d1] mb-4">{product.price}</p>
+          
+          <div className="grid grid-cols-2 gap-2 mb-2">
+            <button 
+              onClick={() => addToCart(product)}
+              className="text-[11px] font-black border border-gray-200 py-2.5 hover:bg-gray-50 transition-colors uppercase flex items-center justify-center gap-2"
+            >
+              <ShoppingCart className="w-3.5 h-3.5 text-[#0050d1]" />
+              <span className="text-gray-800">Add to Cart</span>
+            </button>
+            <button className="text-[11px] font-black bg-[#1a1a1a] text-white py-2 hover:bg-[#0050d1] transition-colors uppercase">
+              Buy Now
+            </button>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-2">
+            <a 
+              href={`https://wa.me/919440502488?text=I am interested in ${product.name}`}
+              target="_blank"
+              className="text-[11px] font-black bg-[#25D366] text-white py-2 hover:bg-[#128C7E] transition-colors uppercase flex items-center justify-center gap-1"
+            >
+              <MessageCircle className="w-3 h-3 fill-white" /> WhatsApp
+            </a>
+            <a 
+              href="tel:9440502488"
+              className="text-[11px] font-black bg-gray-100 text-gray-700 py-2 hover:bg-gray-200 transition-colors uppercase flex items-center justify-center gap-1"
+            >
+              <Phone className="w-3 h-3 fill-gray-700" /> Call
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ProductsContent() {
+  const searchParams = useSearchParams();
+  const [selectedBrands, setSelectedBrands] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash) {
+      const element = document.querySelector(hash);
+      if (element) {
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: "smooth" });
+        }, 100);
+      }
+    }
+  }, [searchParams]);
+
+  const toggleBrand = (sectionId: string, brand: string) => {
+    setSelectedBrands(prev => ({
+      ...prev,
+      [sectionId]: prev[sectionId] === brand ? "" : brand
+    }));
+  };
+
+  return (
+    <div className="bg-[#f9f9f9] min-h-screen">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 pt-10 pb-16">
+        <div className="max-w-7xl mx-auto px-4">
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Home / Our Products</p>
+          <h1 className="text-4xl font-black text-[#1a1a1a] mb-2 uppercase tracking-tighter">Our Products</h1>
+          <p className="text-gray-500 font-medium max-w-2xl leading-relaxed">Genuine products, best prices, expert support in Nizamabad.</p>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 pt-20">
-        {/* Money Counting Machines Section */}
-        <div className="mb-24">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-extrabold text-white mb-4 tracking-tight drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">Money Counting Machines</h2>
-            <div className="w-24 h-1 bg-brand-red mx-auto rounded-full shadow-[0_0_10px_rgba(255,0,0,0.8)]"></div>
-          </div>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {/* Product 1: Cash Counter */}
-            <div className="group relative bg-[#0B1320] rounded-3xl shadow-xl hover:shadow-[0_0_30px_rgba(0,150,255,0.2)] transition-all duration-500 overflow-hidden border border-gray-800 flex flex-col backdrop-blur-xl">
-              <div className="absolute top-4 right-4 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full z-10 shadow-[0_0_15px_rgba(255,0,0,0.5)]">
-                BEST SELLER
+      <div className="max-w-7xl mx-auto px-4 py-12">
+        {sections.map((section) => (
+          <section key={section.id} id={section.id} className="mb-24 scroll-mt-24">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-12 h-12 bg-[#0050d1] flex items-center justify-center text-white rounded-sm">
+                <section.icon className="w-6 h-6" />
               </div>
-              <div className="relative h-80 w-full overflow-hidden bg-gradient-to-b from-[#111A2C] to-[#0B1320] flex items-center justify-center p-4">
-                <Image 
-                  src="/ease-1000.png" 
-                  alt="EASE 1000 Semi Value Counter" 
-                  fill 
-                  className="object-contain group-hover:scale-105 transition-transform duration-700 ease-in-out p-4 drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)]"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              </div>
-              <div className="p-8 flex flex-col flex-grow relative z-10 border-t border-gray-800">
-                <div className="flex items-center gap-2 mb-3 text-cyan-400 font-semibold text-sm drop-shadow-[0_0_5px_rgba(0,255,255,0.5)]">
-                  <ShieldCheck className="w-5 h-5" />
-                  <span>3 Year Warranty</span>
-                </div>
-                <h3 className="text-3xl font-bold text-white mb-3 group-hover:text-cyan-400 transition-colors drop-shadow-md">EASE 1000 Semi Value Counter</h3>
-                <p className="text-gray-400 mb-6 leading-relaxed flex-grow">
-                  Offer Reliability, Accuracy and Speed to Business Owners. Advanced detection (UV, MG, MT, IR) with total value calculation and LCD color change on fake notes.
-                </p>
-                <ul className="text-gray-300 mb-8 space-y-3 font-medium">
-                  <li className="flex items-start"><CheckCircle2 className="w-5 h-5 text-green-400 mr-3 flex-shrink-0 mt-0.5" /> <span>≥1000 notes/min speed with batch & add function</span></li>
-                  <li className="flex items-start"><CheckCircle2 className="w-5 h-5 text-green-400 mr-3 flex-shrink-0 mt-0.5" /> <span>Total Value Calculation for INR, USD, EUR</span></li>
-                  <li className="flex items-start"><CheckCircle2 className="w-5 h-5 text-green-400 mr-3 flex-shrink-0 mt-0.5" /> <span>Automatic half-note, chained-note, double-note detection</span></li>
-                </ul>
-                <a href="tel:9440502488" className="w-full bg-cyan-600 hover:bg-cyan-500 text-white px-6 py-4 rounded-xl font-bold text-center transition-all duration-300 flex items-center justify-center group/btn shadow-[0_0_15px_rgba(0,200,255,0.3)] hover:shadow-[0_0_25px_rgba(0,200,255,0.5)] hover:-translate-y-1">
-                  Request Demo <ArrowRight className="ml-2 w-5 h-5 group-hover/btn:translate-x-1 transition-transform" />
-                </a>
+              <div>
+                <h2 className="text-2xl font-black text-[#1a1a1a] uppercase tracking-tighter">{section.title}</h2>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{section.subtitle}</p>
               </div>
             </div>
 
-            {/* Product 2: Mix Value Counter */}
-            <div className="group relative bg-[#0B1320] rounded-3xl shadow-xl hover:shadow-[0_0_30px_rgba(255,0,50,0.2)] transition-all duration-500 overflow-hidden border border-gray-800 flex flex-col backdrop-blur-xl">
-              <div className="relative h-80 w-full overflow-hidden bg-gradient-to-b from-[#111A2C] to-[#0B1320] flex items-center justify-center p-4">
-                <Image 
-                  src="/inx-4000.png" 
-                  alt="INX 4000 Mix Value Counter" 
-                  fill 
-                  className="object-contain group-hover:scale-105 transition-transform duration-700 ease-in-out p-4 drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)]"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            {section.brands && (
+              <div className="flex flex-wrap gap-2 mb-8">
+                {section.brands.map(brand => (
+                  <button 
+                    key={brand} 
+                    onClick={() => toggleBrand(section.id, brand)}
+                    className={`text-[10px] font-black px-4 py-1.5 border transition-all uppercase tracking-wider ${
+                      selectedBrands[section.id] === brand 
+                        ? "bg-[#0050d1] border-[#0050d1] text-white" 
+                        : "bg-white border-gray-200 text-gray-500 hover:bg-gray-50"
+                    }`}
+                  >
+                    {brand}
+                  </button>
+                ))}
+                {selectedBrands[section.id] && (
+                  <button 
+                    onClick={() => toggleBrand(section.id, "")}
+                    className="text-[10px] font-black px-4 py-1.5 border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 transition-all uppercase tracking-wider"
+                  >
+                    Clear Filter
+                  </button>
+                )}
               </div>
-              <div className="p-8 flex flex-col flex-grow relative z-10 border-t border-gray-800">
-                <div className="flex items-center gap-2 mb-3 text-red-400 font-semibold text-sm drop-shadow-[0_0_5px_rgba(255,0,0,0.5)]">
-                  <Zap className="w-5 h-5" />
-                  <span>Advanced Technology</span>
-                </div>
-                <h3 className="text-3xl font-bold text-white mb-3 group-hover:text-red-400 transition-colors drop-shadow-md">INX 4000 Mix Value Counter</h3>
-                <p className="text-gray-400 mb-6 leading-relaxed flex-grow">
-                  Count mixed denominations effortlessly. Features a large LCD color display, total value calculation, and professional-grade counterfeit detection for peace of mind.
-                </p>
-                <ul className="text-gray-300 mb-8 space-y-3 font-medium">
-                  <li className="flex items-start"><CheckCircle2 className="w-5 h-5 text-green-400 mr-3 flex-shrink-0 mt-0.5" /> <span>Counts mixed notes & shows total value instantly</span></li>
-                  <li className="flex items-start"><CheckCircle2 className="w-5 h-5 text-green-400 mr-3 flex-shrink-0 mt-0.5" /> <span>Multi-currency support (INR, USD, etc.)</span></li>
-                  <li className="flex items-start"><CheckCircle2 className="w-5 h-5 text-green-400 mr-3 flex-shrink-0 mt-0.5" /> <span>Advanced fake note detection sensors</span></li>
-                </ul>
-                <a href="tel:9440502488" className="w-full bg-brand-red hover:bg-red-500 text-white px-6 py-4 rounded-xl font-bold text-center transition-all duration-300 flex items-center justify-center group/btn shadow-[0_0_15px_rgba(255,0,0,0.4)] hover:shadow-[0_0_25px_rgba(255,0,0,0.6)] hover:-translate-y-1">
-                  Request Demo <ArrowRight className="ml-2 w-5 h-5 group-hover/btn:translate-x-1 transition-transform" />
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
+            )}
 
-        {/* Dynamic Categories */}
-        {productCategories.map((category) => (
-          <div key={category.id} className="mb-20">
-            <div className="flex flex-col md:flex-row items-center justify-between mb-10 pb-6 border-b border-gray-800">
-              <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight flex items-center drop-shadow-md">
-                {category.icon}
-                {category.title}
-              </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-px bg-gray-200 border border-gray-200">
+              {allProducts
+                .filter(p => {
+                  const categoryMatch = p.category === section.id || (section.id === "gaming-setup" && p.category === "imported-laptops");
+                  const brandMatch = !selectedBrands[section.id] || p.brand === selectedBrands[section.id];
+                  return categoryMatch && brandMatch;
+                })
+                .map(product => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-              {category.items.map((item) => (
-                <div key={item.id} className="bg-[#0B1320]/80 backdrop-blur-md rounded-2xl shadow-[0_0_15px_rgba(0,0,0,0.5)] hover:shadow-[0_0_25px_rgba(0,150,255,0.15)] border border-gray-800 overflow-hidden group transition-all duration-300 flex flex-col h-full hover:-translate-y-2">
-                  <div className="relative h-56 w-full overflow-hidden bg-white flex items-center justify-center p-3">
-                    <Image 
-                      src={item.image} 
-                      alt={item.name} 
-                      fill 
-                      className="object-contain group-hover:scale-105 transition-transform duration-500 p-3"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#0B1320] via-transparent to-transparent opacity-100" />
-                  </div>
-                  <div className="p-6 flex flex-col flex-grow relative z-10">
-                    <h3 className="font-bold text-gray-100 text-lg mb-2 leading-tight flex-grow group-hover:text-cyan-400 transition-colors">{item.name}</h3>
-                    <p className="text-brand-red font-extrabold text-xl mb-5 drop-shadow-[0_0_5px_rgba(255,0,0,0.4)]">{item.price}</p>
-                    <a 
-                      href={`https://wa.me/919440502488?text=Hi,%20I%20am%20interested%20in%20ordering%20${encodeURIComponent(item.name)}.`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="w-full bg-gradient-to-r from-[#25D366] to-[#128C7E] hover:from-[#1ebd5a] hover:to-[#0f7a6d] text-white py-3 px-4 rounded-xl font-bold flex items-center justify-center transition-all shadow-[0_0_10px_rgba(37,211,102,0.3)] hover:shadow-[0_0_20px_rgba(37,211,102,0.6)]"
-                    >
-                      <MessageCircle className="w-5 h-5 mr-2" />
-                      Order via WhatsApp
-                    </a>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          </section>
         ))}
       </div>
     </div>
   );
 }
+
+export default function ProductsPage() {
+  return (
+    <Suspense fallback={<div className="p-20 text-center font-black">LOADING PRODUCTS...</div>}>
+      <ProductsContent />
+    </Suspense>
+  );
+}
+

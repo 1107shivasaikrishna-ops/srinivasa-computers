@@ -1,43 +1,87 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand-blue: #003366;
-  --color-brand-red: #FF0000;
-  --color-brand-light: #f8fafc;
-  --color-brand-dark: #0f172a;
+  --color-brand-blue: #0050d1;
+  --color-brand-red: #c00;
+  --color-brand-dark: #1a1a1a;
+  --color-brand-light: #f4f4f4;
 }
 
 :root {
   --background: #ffffff;
-  --foreground: #0f172a;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0f172a;
-    --foreground: #f8fafc;
-  }
+  --foreground: #1a1a1a;
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: var(--font-inter), sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Custom scrollbar for a premium feel */
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 10px;
+  width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--background);
+  background: #f4f4f4;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-brand-blue);
-  border-radius: 5px;
+  background: #0050d1;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-brand-red);
+  background: #003d9e;
+}
+
+/* Helper Classes from Original Site */
+.hp-btn-primary {
+  color: #fff;
+  cursor: pointer;
+  background-color: #0050d1;
+  border: none;
+  justify-content: center;
+  align-items: center;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 0.2s;
+  display: inline-flex;
+}
+
+.hp-btn-primary:hover {
+  background-color: #003d9e;
+}
+
+.hp-btn-secondary {
+  color: #0050d1;
+  cursor: pointer;
+  background-color: transparent;
+  border: 2px solid #0050d1;
+  justify-content: center;
+  align-items: center;
+  padding: 9px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s;
+  display: inline-flex;
+}
+
+.hp-btn-secondary:hover {
+  color: #fff;
+  background-color: #0050d1;
+}
+
+.hp-card {
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  padding: 24px;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.hp-card:hover {
+  border-color: #0050d1;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.12);
 }

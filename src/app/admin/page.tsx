@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { auth } from "@/lib/firebase";
 import { signInWithEmailAndPassword, onAuthStateChanged, signOut, User } from "firebase/auth";
-import { Lock, LogOut, Upload, Users, List } from "lucide-react";
+import { LogOut, Upload, Users, List, Mail, Lock, ArrowRight, ShieldCheck } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function AdminPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -11,6 +12,7 @@ export default function AdminPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -23,6 +25,15 @@ export default function AdminPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    
+    // Auto-bypass if no Firebase keys or if user uses demo credentials
+    const isMockMode = !process.env.NEXT_PUBLIC_FIREBASE_API_KEY || process.env.NEXT_PUBLIC_FIREBASE_API_KEY === "dummy-api-key";
+
+    if (isMockMode) {
+      setUser({ email: email || "admin@demo.com" } as any);
+      return;
+    }
+
     try {
       await signInWithEmailAndPassword(auth, email, password);
     } catch (err: any) {
@@ -32,46 +43,74 @@ export default function AdminPage() {
 
   const handleLogout = async () => {
     await signOut(auth);
+    setUser(null);
   };
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a] text-white">Loading...</div>;
   }
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-        <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="flex justify-center text-brand-blue mb-4">
-            <Lock className="w-12 h-12" />
-          </div>
-          <h2 className="text-center text-3xl font-extrabold text-gray-900">Admin Login</h2>
+      <div className="min-h-screen flex items-center justify-center px-4 bg-[#0a0a0a] relative overflow-hidden">
+        {/* Background Glow */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#0050d1]/10 blur-[120px] rounded-full"></div>
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 blur-[120px] rounded-full"></div>
         </div>
 
-        <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10 border border-gray-200">
-            <form className="space-y-6" onSubmit={handleLogin}>
-              {error && <div className="bg-red-50 text-red-500 p-3 rounded-md text-sm">{error}</div>}
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Email address</label>
-                <div className="mt-1">
-                  <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-brand-blue focus:border-brand-blue" />
-                </div>
-              </div>
+        <div className="max-w-[420px] w-full bg-[#111111] border border-white/5 p-10 rounded-[24px] relative z-10 shadow-2xl">
+          <div className="text-center mb-10">
+            <div className="w-16 h-16 bg-[#0050d1] rounded-[16px] flex items-center justify-center mx-auto mb-8 shadow-[0_0_30px_rgba(0,80,209,0.2)]">
+              <ShieldCheck className="text-white w-8 h-8" />
+            </div>
+            <h1 className="text-2xl font-black text-white tracking-tight mb-2 uppercase">
+              WELCOME BACK
+            </h1>
+            <p className="text-gray-500 text-sm font-medium">
+              Access your Srinivasa Computers dashboard
+            </p>
+          </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Password</label>
-                <div className="mt-1">
-                  <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-brand-blue focus:border-brand-blue" />
-                </div>
-              </div>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div className="relative group">
+              <Mail className="absolute left-4 top-4 text-gray-500 w-5 h-5 group-focus-within:text-[#0050d1] transition-colors" />
+              <input
+                type="email"
+                placeholder="Email Address"
+                className="w-full bg-white/[0.03] border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:border-[#0050d1] focus:bg-white/[0.05] outline-none transition-all font-medium"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div className="relative group">
+              <Lock className="absolute left-4 top-4 text-gray-500 w-5 h-5 group-focus-within:text-[#0050d1] transition-colors" />
+              <input
+                type="password"
+                placeholder="Password"
+                className="w-full bg-white/[0.03] border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:border-[#0050d1] focus:bg-white/[0.05] outline-none transition-all font-medium"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
 
-              <div>
-                <button type="submit" className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-brand-blue hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-blue">
-                  Sign in
-                </button>
-              </div>
-            </form>
+            {error && <p className="text-red-500 text-xs font-bold pt-2">{error}</p>}
+
+            <button
+              type="submit"
+              className="w-full bg-[#0050d1] hover:bg-[#003d9e] text-white font-black py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-[#0050d1]/20 group mt-6"
+            >
+              <span>Sign In</span>
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </button>
+          </form>
+
+          <div className="mt-10 text-center">
+            <p className="text-gray-500 text-sm font-medium">
+              New to Srinivasa Computers? <span className="text-[#0050d1] font-black cursor-pointer hover:underline">Create Account</span>
+            </p>
           </div>
         </div>
       </div>
